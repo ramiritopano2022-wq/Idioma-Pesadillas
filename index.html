@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL DE INVOCACIÓN - BILL CIPHER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&display=swap');
+
+        body {
+            background-color: #080404;
+            color: #d4af37;
+            font-family: 'Special Elite', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "Δ";
+            position: absolute;
+            font-size: 35rem;
+            color: rgba(255, 215, 0, 0.01);
+            z-index: -2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* ESTILOS PARA LOS PICTOGRAMAS Y EL OJO FLOTANTE */
+        .pictograma-blanco {
+            position: fixed;
+            color: #ffffff;
+            font-size: 4rem;
+            z-index: -1;
+            opacity: 0;
+            animation: destelloBill 1.5s forwards;
+            pointer-events: none;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px #fff;
+            font-family: sans-serif;
+        }
+
+        .ojo-pictograma {
+            position: fixed;
+            width: 120px;
+            height: auto;
+            z-index: -1;
+            opacity: 0;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+            animation: destelloBill 2s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes destelloBill {
+            0% { opacity: 0; transform: scale(0.5) rotate(-15deg) skewX(20deg); }
+            30% { opacity: 0.95; transform: scale(1.2) rotate(5deg) skewX(0deg); }
+            70% { opacity: 0.95; transform: scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: scale(1.5) rotate(10deg); filter: blur(5px); }
+        }
+
+        .container {
+            background-color: #120b0b;
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.15), inset 0 0 15px rgba(255, 215, 0, 0.05);
+            width: 90%;
+            max-width: 650px;
+            border: 3px double #ffd700;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: 'Creepster', cursive;
+            color: #ff3333;
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 5px;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 0px #400;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button.mode-btn {
+            background-color: #1a0f0f;
+            color: #ffd700;
+            border: 1px solid #ffd700;
+            padding: 8px 15px;
+            font-family: 'Special Elite', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        button.mode-btn.active {
+            background-color: #ffd700;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #cca625;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        textarea {
+            width: 100%;
+            height: 90px;
+            background-color: #050202;
+            color: #00ffcc;
+            border: 1px solid #4a3b11;
+            border-radius: 2px;
+            padding: 12px;
+            font-size: 16px;
+            font-family: 'Special Elite', monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #ff3333;
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+        }
+
+        .output-box {
+            background-color: #050202;
+            border: 1px solid #4a3b11;
+            border-radius: 2px;
+            padding: 15px;
+            min-height: 70px;
+            font-size: 24px;
+            word-break: break-all;
+            color: #ffcc00;
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            color: #555;
+            font-style: italic;
+            z-index: 1;
+            position: relative;
+        }
+
+        @keyframes glitch {
+            0% { opacity: 1; }
+            50% { opacity: 0.95; }
+            52% { opacity: 0.7; transform: skewX(2deg); }
+            54% { opacity: 1; transform: skewX(0); }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            animation: glitch 5s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AUDIO DE MURMULLOS -->
+    <audio id="audio-murmullos" loop>
+        <source src="murmullos.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- CANVAS PARA LLUVIA BLANCA -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <h1>DIMENSIÓN PSI</h1>
+        <div class="subtitle">"¿Qué deseas negociar con el demonio de los sueños?"</div>
+        
+        <div class="mode-selector">
+            <button id="btnEspañol" class="mode-btn active" onclick="cambiarModo('esp')">Español ➔ Bill</button>
+            <button id="btnBill" class="mode-btn" onclick="cambiarModo('bill')">Bill ➔ Humano</button>
+        </div>
+
+        <label id="labelInput">Escribe tu mensaje mortal:</label>
+        <textarea id="inputTexto" placeholder="Escribe algo en español..." oninput="procesarTraduccion()" onkeydown="reproducirSonidoMaquina()"></textarea>
+        
+        <label id="labelOutput">Traducción interdimensional:</label>
+        <div id="outputTexto" class="output-box"></div>
+    </div>
+
+    <div class="footer">
+        "La realidad es una ilusión, el universo un holograma, ¡cómprate oro, adiós!"
+    </div>
+
+    <script>
+        const mapEspToBill = {
+            'a': 'Ψ', 'b': 'Φ', 'c': 'Ω', 'd': 'Δ', 'e': 'ϴ',
+            'f': 'Λ', 'g': 'Ξ', 'h': 'Π', 'i': 'Σ', 'j': 'Υ',
+            'k': 'Χ', 'l': '𝚲', 'm': 'Γ', 'n': 'Θ', 'ñ': '𝛀',
+            'o': '⌖', 'p': '⍜', 'q': '⟒', 'r': '⎅', 's': '⟟',
+            't': '⎎', 'u': '☍', 'v': '⊑', 'w': '⌰', 'x': '⟊',
+            'y': '⋊', 'z': '⋔'
+        };
+
+        const mapBillToEsp = {};
+        for (let letra in mapEspToBill) {
+            let simbolo = mapEspToBill[letra];
+            mapBillToEsp[simbolo] = letra;
+        }
+
+        let modoActual = 'esp';
+
+        function cambiarModo(modo) {
+            modoActual = modo;
+            let input = document.getElementById('inputTexto');
+            let btnEsp = document.getElementById('btnEspañol');
+            let btnBill = document.getElementById('btnBill');
+            let lblInput = document.getElementById('labelInput');
+            let lblOutput = document.getElementById('labelOutput');
+
+            input.value = '';
+            document.getElementById('outputTexto').innerText = '';
+
+            if (modo === 'esp') {
+                btnEsp.classList.add('active');
+                btnBill.classList.remove('active');
+                lblInput.innerText = "Escribe tu mensaje mortal:";
+                lblOutput.innerText = "Traducción interdimensional (Idioma Bill):";
+                input.placeholder = "Escribe algo en español...";
+                document.getElementById('outputTexto').style.color = "#ffcc00";
+            } else {
+                btnBill.classList.add('active');
+                btnEsp.classList.remove('active');
+                lblInput.innerText = "Introduce los símbolos de Bill:";
+                lblOutput.innerText = "Traducción humana descifrada:";
+                input.placeholder = "Pega los símbolos aquí...";
+                document.getElementById('outputTexto').style.color = "#00ffcc";
+            }
+        }
+
+        function procesarTraduccion() {
+            let texto = document.getElementById('inputTexto').value;
+            let resultado = '';
+
+            if (modoActual === 'esp') {
+                let textoMinus = texto.toLowerCase();
+                for (let i = 0; i < textoMinus.length; i++) {
+                    let char = textoMinus[i];
+                    if (mapEspToBill[char]) {
+                        resultado += mapEspToBill[char];
+                    } else {
+                        resultado += char; 
+                    }
+                }
+            } else {
+                for (let i = 0; i < texto.length; i++) {
+                    let char = texto[i];
+                    if (mapBillToEsp[char]) { 
+                        resultado += mapBillToEsp[char];
+                    } else {
+                        resultado += char; 
+                    }
+                }
+            }
+
+            document.getElementById('outputTexto').innerText = resultado;
+        }
+
+        // --- EFECTO DE MÁQUINA DE ESCRIBIR CLÁSICA ---
+        let audioCtx = null;
+
+        function reproducirSonidoMaquina() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            let bufferSize = audioCtx.sampleRate * 0.03;
+            let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            let output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+
+            let whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = buffer;
+
+            let filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1200 + Math.random() * 400; 
+            filter.Q.value = 3;
+
+            let gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+
+            whiteNoise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            whiteNoise.start();
+        }
+
+        // --- EFECTO FONDO BLANCO ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function redimensionarCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', redimensionarCanvas);
+        redimensionarCanvas();
+
+        const caracteresFondo = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ΔΨΩΘ".split("");
+        const fontSize = 16;
+        let columns = canvas.width / fontSize;
+        let drops = [];
+        for (let x = 0; x < columns; x++) drops[x] = 1;
+
+        function dibujarFondo() {
+            ctx.fillStyle = "rgba(8, 4, 4, 0.1)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = fontSize + "px 'Special Elite'";
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = caracteresFondo[Math.floor(Math.random() * caracteresFondo.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(dibujarFondo, 60);
+
+        // --- EFECTO: MÁS PICTOGRAMAS CADA 5 SEGUNDOS (LOTE DE 4 A LA VEZ) ---
+        const simbolosBill = Object.values(mapEspToBill);
+        
+        function invocarLotePictogramas() {
+            // Genera 4 elementos intermitentes de golpe en la pantalla cada vez que se ejecuta
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    if (Math.random() > 0.3) {
+                        const pic = document.createElement('div');
+                        pic.innerText = simbolosBill[Math.floor(Math.random() * simbolosBill.length)];
+                        pic.className = 'pictograma-blanco';
+                        pic.style.left = Math.random() * 90 + 'vw';
+                        pic.style.top = Math.random() * 90 + 'vh';
+                        document.body.appendChild(pic);
+                        setTimeout(() => pic.remove(), 1500);
+                    } else {
+                        const ojo = document.createElement('img');
+                        ojo.src = 'ojo.jpeg';
+                        ojo.className = 'ojo-pictograma';
+                        ojo.style.left = Math.random() * 85 + 'vw';
+                        ojo.style.top = Math.random() * 85 + 'vh';
+                        document.body.appendChild(ojo);
+                        setTimeout(() => ojo.remove(), 2000);
+                    }
+                }, i * 300); // Pequeño retraso escalonado dentro de los 5 segundos
+            }
+        }
+
+        // Ejecutar exactamente cada 5000 milisegundos (5 segundos)
+        setInterval(invocarLotePictogramas, 5000);
+        // Primer llamado inicial a los 1.5 segundos
+        setTimeout(invocarLotePictogramas, 1500);
+
+        // --- ACTIVAR AUDIO DE MURMULLOS AL 10% DE VOLUMEN ---
+        let audioActivado = false;
+        document.body.addEventListener('click', () => {
+            if (!audioActivado) {
+                const audio = document.getElementById('audio-murmullos');
+                audio.volume = 0.1; /* VOLUMEN AL 10% */
+                audio.play().catch(e => console.log("Error al reproducir audio"));
+                audioActivado = true;
+            }
+        });
+    </script>
+</body>
+</html>
