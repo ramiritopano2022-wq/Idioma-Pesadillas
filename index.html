@@ -43,7 +43,6 @@
             pointer-events: none;
         }
 
-        /* ESTILOS PARA LOS PICTOGRAMAS Y EL OJO FLOTANTE */
         .pictograma-blanco {
             position: fixed;
             color: #ffffff;
@@ -197,12 +196,10 @@
 </head>
 <body>
 
-    <!-- AUDIO DE MURMULLOS -->
     <audio id="audio-murmullos" loop>
         <source src="murmullos.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- CANVAS PARA LLUVIA BLANCA -->
     <canvas id="bg-canvas"></canvas>
 
     <div class="container">
@@ -226,10 +223,11 @@
     </div>
 
     <script>
+        // Mapeo corregido: La 'l' ahora usa el símbolo '§' (sección) para que al descifrar devuelva una 'l' minúscula limpia y legible
         const mapEspToBill = {
             'a': 'Ψ', 'b': 'Φ', 'c': 'Ω', 'd': 'Δ', 'e': 'ϴ',
-            'f': 'Λ', 'g': 'Ξ', 'h': 'Π', 'i': 'Σ', 'j': 'Υ',
-            'k': 'Χ', 'l': '𝚲', 'm': 'Γ', 'n': 'Θ', 'ñ': '𝛀',
+            'f': 'Ξ', 'g': 'Π', 'h': 'Σ', 'i': 'Υ', 'j': 'Χ',
+            'k': '𝚲', 'l': '§', 'm': 'Γ', 'n': 'Θ', 'ñ': '𝛀',
             'o': '⌖', 'p': '⍜', 'q': '⟒', 'r': '⎅', 's': '⟟',
             't': '⎎', 'u': '☍', 'v': '⊑', 'w': '⌰', 'x': '⟊',
             'y': '⋊', 'z': '⋔'
@@ -286,8 +284,11 @@
                     }
                 }
             } else {
+                texto = texto.normalize("NFC");
+                
                 for (let i = 0; i < texto.length; i++) {
                     let char = texto[i];
+                    
                     if (mapBillToEsp[char]) { 
                         resultado += mapBillToEsp[char];
                     } else {
@@ -299,7 +300,6 @@
             document.getElementById('outputTexto').innerText = resultado;
         }
 
-        // --- EFECTO DE MÁQUINA DE ESCRIBIR CLÁSICA ---
         let audioCtx = null;
 
         function reproducirSonidoMaquina() {
@@ -336,7 +336,6 @@
             whiteNoise.start();
         }
 
-        // --- EFECTO FONDO BLANCO ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         
@@ -371,11 +370,9 @@
         }
         setInterval(dibujarFondo, 60);
 
-        // --- EFECTO: MÁS PICTOGRAMAS CADA 5 SEGUNDOS (LOTE DE 4 A LA VEZ) ---
         const simbolosBill = Object.values(mapEspToBill);
         
         function invocarLotePictogramas() {
-            // Genera 4 elementos intermitentes de golpe en la pantalla cada vez que se ejecuta
             for (let i = 0; i < 4; i++) {
                 setTimeout(() => {
                     if (Math.random() > 0.3) {
@@ -395,21 +392,18 @@
                         document.body.appendChild(ojo);
                         setTimeout(() => ojo.remove(), 2000);
                     }
-                }, i * 300); // Pequeño retraso escalonado dentro de los 5 segundos
+                }, i * 300);
             }
         }
 
-        // Ejecutar exactamente cada 5000 milisegundos (5 segundos)
         setInterval(invocarLotePictogramas, 5000);
-        // Primer llamado inicial a los 1.5 segundos
         setTimeout(invocarLotePictogramas, 1500);
 
-        // --- ACTIVAR AUDIO DE MURMULLOS AL 10% DE VOLUMEN ---
         let audioActivado = false;
         document.body.addEventListener('click', () => {
             if (!audioActivado) {
                 const audio = document.getElementById('audio-murmullos');
-                audio.volume = 0.1; /* VOLUMEN AL 10% */
+                audio.volume = 0.1;
                 audio.play().catch(e => console.log("Error al reproducir audio"));
                 audioActivado = true;
             }
